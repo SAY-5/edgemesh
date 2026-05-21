@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-with-edgemesh
+  labels:
+    app.kubernetes.io/name: edgemesh
+    app.kubernetes.io/component: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: edgemesh
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: edgemesh
+        app.kubernetes.io/component: app
+    spec:
+      containers:
+        - name: app
+          image: example/echo-app:latest
+          ports:
+            - name: app-grpc
+              containerPort: 9000
+          # The app talks to its sidecar over loopback.
+          env:
+            - name: EDGEMESH_ADDR
+              value: 127.0.0.1:8080
+        - name: edgemesh-sidecar
+          image: ghcr.io/say-5/edgemesh:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - "-config=/etc/edgemesh/config.yaml"
+          env:
+            - name: EDGEMESH_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - name: sidecar-grpc
+              containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 1
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/edgemesh
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: edgemesh-sidecar-config
