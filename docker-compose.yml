@@ -1,0 +1,40 @@
+services:
+  sidecar-a:
+    build: .
+    image: edgemesh/sidecar:dev
+    environment:
+      EDGEMESH_NODE_ID: node-a
+      EDGEMESH_CONFIG: /etc/edgemesh/config.yaml
+    volumes:
+      - ./scripts/compose-config-a.yaml:/etc/edgemesh/config.yaml:ro
+    ports:
+      - "8080:8080"
+    networks: [mesh]
+
+  sidecar-b:
+    build: .
+    image: edgemesh/sidecar:dev
+    environment:
+      EDGEMESH_NODE_ID: node-b
+      EDGEMESH_CONFIG: /etc/edgemesh/config.yaml
+    volumes:
+      - ./scripts/compose-config-b.yaml:/etc/edgemesh/config.yaml:ro
+    ports:
+      - "8081:8080"
+    networks: [mesh]
+
+  sidecar-c:
+    build: .
+    image: edgemesh/sidecar:dev
+    environment:
+      EDGEMESH_NODE_ID: node-c
+      EDGEMESH_CONFIG: /etc/edgemesh/config.yaml
+    volumes:
+      - ./scripts/compose-config-c.yaml:/etc/edgemesh/config.yaml:ro
+    ports:
+      - "8082:8080"
+    networks: [mesh]
+
+networks:
+  mesh:
+    driver: bridge

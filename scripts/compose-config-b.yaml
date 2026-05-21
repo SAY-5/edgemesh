@@ -1,0 +1,25 @@
+node_id: node-b
+listen:
+  address: 0.0.0.0:8080
+load_balancer: round-robin
+health:
+  interval_ms: 1000
+  timeout_ms: 200
+  healthy_to_unhealthy: 3
+  unhealthy_to_healthy: 2
+retry:
+  max_attempts: 3
+  base_ms: 50
+  multiplier: 4
+  max_ms: 1000
+  jitter_frac: 0.2
+services:
+  - name: echo
+    peers:
+      - id: node-a
+        address: sidecar-a:8080
+      - id: node-c
+        address: sidecar-c:8080
+    methods:
+      - name: Say
+        idempotent: true
