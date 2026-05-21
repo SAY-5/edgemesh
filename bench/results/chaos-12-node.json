@@ -1,0 +1,23 @@
+{
+  "started": "2026-05-21T22:25:07Z",
+  "wall_clock_ms": 1369,
+  "node_count": 12,
+  "scenarios_total": 200,
+  "scenarios_passed": 200,
+  "total_rpcs": 16000,
+  "rpcs_succeeded": 15764,
+  "rpcs_failed_classified": 236,
+  "rpcs_unaccounted": 0,
+  "convergence_max_ms": 9,
+  "convergence_p50_ms": 1,
+  "convergence_p95_ms": 8,
+  "lb_invariant_violations": 0,
+  "scenarios_by_kind": {
+    "baseline": 38,
+    "node_down": 35,
+    "partition_pair": 30,
+    "partition_star": 36,
+    "random_drop": 29,
+    "recovery": 32
+  }
+}

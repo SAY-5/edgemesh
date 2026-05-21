@@ -1,0 +1,11 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/SAY-5/edgemesh/bench
+cpu: Apple M2 Pro
+BenchmarkCallSteadyState-10        	  447628	      5511 ns/op	    5768 B/op	       7 allocs/op
+BenchmarkCallSinglePeer-10         	  141594	     15531 ns/op	    5504 B/op	       5 allocs/op
+BenchmarkHealthSweep-10            	   10000	    233750 ns/op	   48941 B/op	     796 allocs/op
+BenchmarkCallChaos-10              	  466855	     34896 ns/op	    6291 B/op	      17 allocs/op
+BenchmarkCallMixedConcurrent-10    	  405255	      7972 ns/op	    6367 B/op	      11 allocs/op
+PASS
+ok  	github.com/SAY-5/edgemesh/bench	27.283s
