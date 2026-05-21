@@ -1,0 +1,98 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.5.0
+          args: --timeout=5m
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+      - name: unit tests
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./internal/... ./cmd/...
+      - name: upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.txt
+
+  test-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+      - name: 12-node chaos suite (smoke)
+        env:
+          RUN_CHAOS: "1"
+          CHAOS_SCENARIOS: "60"
+        run: go test -race -timeout 5m ./tests/integration/...
+
+  bench-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+      - name: bench smoke
+        run: go test -bench=. -benchtime=1x -benchmem -run=^$ ./bench/...
+
+  manifest-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install kubeconform
+        run: |
+          curl -sSLO https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar -xzf kubeconform-linux-amd64.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+      - name: validate base manifests
+        run: kubeconform -strict -ignore-missing-schemas -summary k8s/base
+      - name: render and validate overlays
+        run: |
+          for ov in dev stg prod; do
+            echo "--- $ov ---"
+            kubectl kustomize k8s/overlays/$ov | kubeconform -strict -ignore-missing-schemas -summary -
+          done
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      - name: set up buildx
+        uses: docker/setup-buildx-action@v3
+      - name: build image (amd64+arm64, no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: edgemesh/sidecar:ci
