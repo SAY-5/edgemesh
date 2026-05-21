@@ -1,0 +1,43 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - gocyclo
+    - revive
+  settings:
+    gocyclo:
+      min-complexity: 18
+    revive:
+      rules:
+        - name: var-naming
+        - name: package-comments
+          disabled: true
+        - name: exported
+          disabled: true
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - errcheck
+      - path: internal/topology/
+        linters:
+          - gocyclo
+      - path: tests/integration/
+        linters:
+          - gocyclo
+
+formatters:
+  enable:
+    - gofmt
