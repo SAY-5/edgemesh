@@ -1,0 +1,21 @@
+# binaries
+bin/
+dist/
+*.test
+*.out
+*.prof
+*.cover
+coverage.txt
+coverage.html
+
+# editor
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS
+.DS_Store
+
+# runtime
+*.log
