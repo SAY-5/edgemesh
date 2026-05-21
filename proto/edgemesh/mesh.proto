@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package edgemesh.v1;
+
+option go_package = "github.com/SAY-5/edgemesh/proto/edgemesh;edgemeshpb";
+
+// Mesh exposes the sidecar control plane: peer status, drain signalling,
+// and a forward RPC for application traffic that does not have a dedicated
+// gRPC contract.
+service Mesh {
+  rpc ListPeers(ListPeersRequest) returns (ListPeersResponse);
+  rpc GetPeer(GetPeerRequest) returns (PeerStatus);
+  rpc Drain(DrainRequest) returns (DrainResponse);
+  rpc Forward(ForwardRequest) returns (ForwardResponse);
+}
+
+message ListPeersRequest {
+  string service = 1; // optional filter
+}
+
+message ListPeersResponse {
+  repeated PeerStatus peers = 1;
+}
+
+message GetPeerRequest {
+  string peer_id = 1;
+}
+
+enum Health {
+  HEALTH_UNKNOWN = 0;
+  HEALTH_HEALTHY = 1;
+  HEALTH_UNHEALTHY = 2;
+}
+
+message PeerStatus {
+  string peer_id = 1;
+  string service = 2;
+  string address = 3;
+  Health health = 4;
+  int64 last_probe_unix_nano = 5;
+  uint32 consecutive_successes = 6;
+  uint32 consecutive_failures = 7;
+  uint32 in_flight = 8;
+}
+
+message DrainRequest {
+  uint32 grace_seconds = 1;
+}
+
+message DrainResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message ForwardRequest {
+  string service = 1;
+  string method = 2;
+  bytes payload = 3;
+  map<string, string> metadata = 4;
+}
+
+message ForwardResponse {
+  bytes payload = 1;
+  uint32 attempts = 2;
+  string peer_id = 3;
+}
